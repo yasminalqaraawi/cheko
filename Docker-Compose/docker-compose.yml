@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: cheko-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgresuser
+      POSTGRES_PASSWORD: postgrespass
+      POSTGRES_DB: cheko
+    volumes:
+      - ./cheko.sql:/docker-entrypoint-initdb.d/cheko.sql
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./backend
+    container_name: cheko-backend
+    ports:
+      - "8002:8002"
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/cheko
+      SPRING_DATASOURCE_USERNAME: postgresuser
+      SPRING_DATASOURCE_PASSWORD: postgrespass
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: cheko-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
